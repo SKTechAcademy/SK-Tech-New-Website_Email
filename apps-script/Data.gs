@@ -17,12 +17,37 @@ function records_(name) {
   var sh = sheet_(name);
   if (sh.getLastRow() < 2) return [];
   var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0];
-  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, headers.length).getDisplayValues();
+  var range = sh.getRange(2, 1, sh.getLastRow() - 1, headers.length);
+  var rows = range.getDisplayValues();
+  var rawRows = range.getValues();
   return rows.map(function (row, index) {
     var record = { _row: index + 2 };
-    headers.forEach(function (header, column) { record[header] = row[column]; });
+    headers.forEach(function (header, column) { record[header] = normalizeSheetValue_(header, row[column], rawRows[index][column]); });
     return record;
   });
+}
+
+// Typed Sheet columns render clock values using the workbook locale. Keep the
+// API's canonical HH:mm representation independent of that display format.
+function normalizeSheetValue_(header, value, rawValue) {
+  // Never parse a locale-dependent date display (01/02 is ambiguous).
+  if (Object.prototype.toString.call(rawValue) === '[object Date]' && !isNaN(rawValue.getTime())) {
+    if (['date', 'dateFrom', 'dateTo', 'effectiveFrom', 'effectiveTo'].indexOf(header) !== -1) {
+      return Utilities.formatDate(rawValue, getSpreadsheet_().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+    }
+    if (header === 'startTime' || header === 'endTime') {
+      return Utilities.formatDate(rawValue, getSpreadsheet_().getSpreadsheetTimeZone(), 'HH:mm');
+    }
+  }
+  if (header === 'startTime' || header === 'endTime') {
+    var clock = String(value || '').trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm)?$/i);
+    if (clock) {
+      var hour = Number(clock[1]);
+      if (clock[3]) hour = hour % 12 + (clock[3].toLowerCase() === 'pm' ? 12 : 0);
+      if (hour < 24 && Number(clock[2]) < 60) return ('0' + hour).slice(-2) + ':' + clock[2];
+    }
+  }
+  return value;
 }
 
 function appendRecord_(name, record) {
@@ -57,10 +82,12 @@ function findRecord_(name, column, value) {
     .findNext();
   if (!finder) return null;
   var rowNumber = finder.getRow();
-  var values = sh.getRange(rowNumber, 1, 1, sh.getLastColumn()).getDisplayValues()[0];
+  var range = sh.getRange(rowNumber, 1, 1, sh.getLastColumn());
+  var values = range.getDisplayValues()[0];
+  var rawValues = range.getValues()[0];
   var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0];
   var record = { _row: rowNumber };
-  headers.forEach(function (header, index) { record[header] = values[index]; });
+  headers.forEach(function (header, index) { record[header] = normalizeSheetValue_(header, values[index], rawValues[index]); });
   return record;
 }
 

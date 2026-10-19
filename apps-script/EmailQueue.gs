@@ -79,6 +79,10 @@ function deliverQueuedEmailUnlocked_(row) {
     });
     appendEmailLogUnlocked_(row, 'SENT', 'MailApp accepted the message.', '');
   } catch (error) {
+    // Private execution logs retain the actionable provider failure, excluding
+    // recipient addresses and message contents.
+    console.error(JSON.stringify({ emailId: row.emailId, stage: 'MAIL_DELIVERY',
+      message: String(error && error.message || error).replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]').slice(0, 500) }));
     var max = Number(setting_('EMAIL_MAX_ATTEMPTS')) || 5;
     var retry = attempts < max;
     var delays = [5, 15, 60, 240, 720];
@@ -91,6 +95,16 @@ function deliverQueuedEmailUnlocked_(row) {
     appendEmailLogUnlocked_(row, retry ? 'RETRY_SCHEDULED' : 'FAILED', String(error && error.name || 'Error'), 'MAIL_SEND_FAILED');
   }
   refreshOperationEmailStatusUnlocked_(row.operationToken);
+}
+
+function diagnoseStagingMail() {
+  assertAdmin_();
+  var report = { sender: Session.getEffectiveUser().getEmail(), remainingQuota: MailApp.getRemainingDailyQuota() };
+  var logo = getEmailLogo_();
+  report.logoAvailable = Boolean(logo);
+  report.logoType = logo ? logo.getContentType() : '';
+  console.log(JSON.stringify(report));
+  return report;
 }
 
 function getEmailLogo_() {

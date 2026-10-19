@@ -11,8 +11,10 @@ function bookInterview_(payload) {
     if (!candidate || candidate.status !== 'REGISTERED' || !emailMatches || !nameMatches) {
       throw appError_('CANDIDATE_NOT_VERIFIED', 'The SK ID, full name and verified email could not be confirmed.');
     }
-    consumeEmailVerificationUnlocked_(payload.verificationToken, booking.email, 'BOOKING');
     var selected = assertSlotAvailableUnlocked_(booking, '');
+    // A stale/full slot must not burn the verified email token. The caller can
+    // select another slot while the same verification is still valid.
+    consumeEmailVerificationUnlocked_(payload.verificationToken, booking.email, 'BOOKING');
     var bookingId = allocateIdUnlocked_('booking');
     var publicReference = ('BR-' + hash_(bookingId + '|' + randomToken_()).slice(0, 24)).toUpperCase();
     var manageToken = 'BM-' + randomToken_();

@@ -4,7 +4,7 @@ function assertAdmin_() {
   if (active && active.getId() !== configured.getId()) {
     throw appError_('ADMIN_CONTEXT_REQUIRED', 'Open the configured staging workbook to use admin controls.');
   }
-  var email = Core.normalizeEmail(Session.getActiveUser().getEmail() || Session.getEffectiveUser().getEmail());
+  var email = Core.normalizeEmail(Session.getActiveUser().getEmail());
   var allowlist = String(setting_('ADMIN_ALLOWLIST') || '').split(',').map(Core.normalizeEmail).filter(Boolean);
   var domain = String(setting_('ADMIN_DOMAIN') || '').toLowerCase().replace(/^@/, '');
   if (allowlist.length && allowlist.indexOf(email) === -1) throw appError_('ADMIN_FORBIDDEN', 'You are not authorized to manage availability.');
@@ -30,6 +30,7 @@ function showAdminSidebar() {
 
 function adminGetBootstrap() {
   assertAdmin_();
+  assertAdminUiContext_();
   return {
     timezone: setting_('TIME_ZONE'),
     panels: records_('Panels').filter(function (row) { return isActiveFlag_(row.active); }).map(function (row) {
@@ -42,6 +43,7 @@ function adminGetBootstrap() {
 
 function adminAddSlotBlock(input) {
   var actor = assertAdmin_();
+  assertAdminUiContext_();
   var payload = input || {};
   var dates = assertAdminDatesAndTimes_(payload);
   var requestedScope = String(payload.scope || '').toUpperCase();
@@ -91,6 +93,7 @@ function normalizeBlockScope_(requestedScope, dates) {
 
 function adminAddSpecialOpen(input) {
   var actor = assertAdmin_();
+  assertAdminUiContext_();
   var payload = input || {};
   if (payload.panelId && !findRecord_('Panels', 'panelId', String(payload.panelId))) {
     throw appError_('VALIDATION_FAILED', 'Choose a valid panel.');
@@ -114,6 +117,7 @@ function adminAddSpecialOpen(input) {
 
 function adminSetRuleActive(input) {
   var actor = assertAdmin_();
+  assertAdminUiContext_();
   var payload = input || {};
   var table = payload.kind === 'SPECIAL_OPEN' ? 'Special_Open_Dates' : 'Slot_Blocks';
   var idColumn = table === 'Special_Open_Dates' ? 'overrideId' : 'blockId';
