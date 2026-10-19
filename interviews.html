@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#061123" />
+    <meta name="description" content="View upcoming SK Tech interviews, live available slots and current job openings." />
+    <meta property="og:title" content="SK Tech Interview Dashboard" />
+    <meta property="og:description" content="Interviews, available slots and job opportunities in one place." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Interview Dashboard | SK Tech</title>
+  </head>
+  <body>
+    <a class="dashboard-skip-link" href="#dashboard-content">Skip to dashboard</a>
+    <div class="dashboard-backdrop" aria-hidden="true"></div>
+
+    <main id="dashboard-content" class="dashboard-shell">
+      <header class="dashboard-hero">
+        <a class="dashboard-brand" href="/" aria-label="SK Tech home">
+          <img src="/sk-tech-logo.png" width="66" height="66" alt="SK Tech logo" />
+          <span><strong>SK TECH <em>Interview Dashboard</em></strong><small>Interviews, available slots and live job opportunities in one place.</small></span>
+        </a>
+        <span class="live-pill"><i aria-hidden="true"></i> Live dashboard</span>
+      </header>
+
+      <section class="dashboard-summary" aria-label="Dashboard totals">
+        <button class="summary-card summary-card--blue" type="button" data-summary-tab="all">
+          <span class="summary-card__icon" aria-hidden="true">▥</span>
+          <strong data-count="upcoming">—</strong><small>Upcoming Interviews</small>
+        </button>
+        <button class="summary-card summary-card--purple" type="button" data-summary-tab="today">
+          <span class="summary-card__date" data-today-badge></span>
+          <strong data-count="today">—</strong><small>Today's Interviews</small>
+        </button>
+        <button class="summary-card summary-card--teal" type="button" data-summary-tab="jobs" data-job-age="new">
+          <span class="summary-card__icon" aria-hidden="true">✦</span>
+          <strong data-count="newOpenings">—</strong><small>New Openings</small>
+        </button>
+        <button class="summary-card summary-card--orange" type="button" data-summary-tab="jobs" data-job-age="old">
+          <span class="summary-card__icon" aria-hidden="true">▰</span>
+          <strong data-count="oldOpenings">—</strong><small>Old Openings</small>
+        </button>
+      </section>
+
+      <div class="dashboard-actions">
+        <a class="dashboard-button dashboard-button--quiet" href="/">← Home</a>
+        <button class="dashboard-button dashboard-button--schedule" type="button" data-open-booking>＋ Schedule Interview</button>
+        <button class="dashboard-button dashboard-button--quiet" type="button" data-refresh>↻ Refresh</button>
+        <small class="dashboard-updated" data-updated role="status" aria-live="polite">Loading live dashboard…</small>
+      </div>
+
+      <div class="dashboard-tabs" role="tablist" aria-label="Interview dashboard views">
+        <button id="dashboard-tab-all" type="button" role="tab" aria-selected="true" aria-controls="dashboard-panel-table" data-dashboard-tab="all">All Upcoming</button>
+        <button id="dashboard-tab-today" type="button" role="tab" aria-selected="false" aria-controls="dashboard-panel-table" tabindex="-1" data-dashboard-tab="today">Today</button>
+        <button id="dashboard-tab-tomorrow" type="button" role="tab" aria-selected="false" aria-controls="dashboard-panel-table" tabindex="-1" data-dashboard-tab="tomorrow">Tomorrow</button>
+        <button id="dashboard-tab-slots" type="button" role="tab" aria-selected="false" aria-controls="dashboard-panel-table" tabindex="-1" data-dashboard-tab="slots">Available Slots</button>
+        <button id="dashboard-tab-jobs" type="button" role="tab" aria-selected="false" aria-controls="dashboard-panel-jobs" tabindex="-1" data-dashboard-tab="jobs">Job Openings</button>
+      </div>
+
+      <section id="dashboard-panel-table" class="dashboard-panel" role="tabpanel" aria-labelledby="dashboard-tab-all" data-table-panel>
+        <div class="dashboard-legend" aria-label="Interview row colours">
+          <span><i class="legend-dot legend-dot--today"></i>Today</span>
+          <span><i class="legend-dot legend-dot--tomorrow"></i>Tomorrow</span>
+          <span><i class="legend-dot legend-dot--next"></i>Next Weekday</span>
+          <span><i class="legend-dot legend-dot--later"></i>Later Weekdays</span>
+          <span><i class="legend-dot legend-dot--conflict"></i>Conflict</span>
+          <span><i class="legend-dot legend-dot--unavailable"></i>Panel/Weekend Unavailable</span>
+        </div>
+
+        <div class="dashboard-table-wrap" data-table-wrap aria-busy="true">
+          <table class="dashboard-table">
+            <caption class="visually-hidden" data-table-caption>All upcoming interviews</caption>
+            <thead><tr><th scope="col">ID</th><th scope="col">Round</th><th scope="col">Date</th><th scope="col">From</th><th scope="col">To</th><th scope="col">Batch</th></tr></thead>
+            <tbody data-dashboard-rows></tbody>
+          </table>
+          <div class="dashboard-empty" data-dashboard-empty hidden><strong>No items in this view</strong><p>Choose another tab or refresh for the latest schedule.</p></div>
+        </div>
+      </section>
+
+      <section id="dashboard-panel-jobs" class="dashboard-panel dashboard-jobs" role="tabpanel" aria-labelledby="dashboard-tab-jobs" data-jobs-panel hidden>
+        <div class="jobs-heading"><div><span>Live opportunities</span><h2>Current Job Openings</h2><p>Search opportunities by role, company, skill or location.</p></div></div>
+        <form class="jobs-toolbar" data-dashboard-job-filters role="search">
+          <label class="jobs-search"><span class="visually-hidden">Search jobs</span><i aria-hidden="true">⌕</i><input name="q" type="search" maxlength="80" placeholder="Search jobs, skills or location" /></label>
+          <label><span class="visually-hidden">Employment type</span><select name="type"><option value="">All employment types</option><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option></select></label>
+          <label><span class="visually-hidden">Sort job openings</span><select name="sort"><option value="newest">Newest first</option><option value="title">Title A–Z</option></select></label>
+          <button class="dashboard-button dashboard-button--blue" type="submit">Search</button>
+        </form>
+        <div class="job-age-filter" role="group" aria-label="Filter jobs by age" data-job-age-filter>
+          <button type="button" aria-pressed="true" data-age="all">All jobs</button>
+          <button type="button" aria-pressed="false" data-age="new">New</button>
+          <button type="button" aria-pressed="false" data-age="old">Old</button>
+        </div>
+        <div class="jobs-status" data-jobs-status role="status" aria-live="polite"></div>
+        <div class="dashboard-job-grid" data-dashboard-jobs></div>
+        <div class="dashboard-pagination" data-dashboard-pagination hidden>
+          <button type="button" data-jobs-prev>← Previous</button><span data-jobs-range></span><button type="button" data-jobs-next>Next →</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="booking-dialog" data-booking-dialog aria-labelledby="booking-dialog-title">
+      <form class="booking-wizard" method="dialog" novalidate data-booking-wizard>
+        <header class="booking-wizard__header">
+          <div class="booking-wizard__brand"><img src="/sk-tech-logo.png" width="48" height="48" alt="" /><span><small>Interview scheduling</small><strong id="booking-dialog-title">Schedule an Interview</strong><em>SK TECH · Your Future, Our Mission</em></span></div>
+          <button class="dialog-close" type="button" aria-label="Close interview form" data-close-booking>×</button>
+        </header>
+
+        <ol class="wizard-progress" aria-label="Booking progress">
+          <li class="is-current" data-progress-step="1"><span>1</span><small>Candidate</small></li>
+          <li data-progress-step="2"><span>2</span><small>Interview</small></li>
+          <li data-progress-step="3"><span>3</span><small>HR contact</small></li>
+          <li data-progress-step="4"><span>4</span><small>Date &amp; time</small></li>
+        </ol>
+
+        <div class="wizard-alert" data-wizard-status role="status" aria-live="polite"></div>
+        <input class="hp-field" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+        <section class="wizard-step" data-wizard-step="1">
+          <p class="wizard-kicker">Candidate details <span>Step 1 of 4</span></p><h2><i>1</i> Candidate details</h2>
+          <div class="wizard-fields">
+            <label><span>Email *</span><input type="email" name="email" autocomplete="email" maxlength="120" required placeholder="name@example.com" /><small data-wizard-error="email"></small></label>
+            <label><span>SK Tech Register ID *</span><input name="skId" maxlength="20" required placeholder="SK1234" /><small data-wizard-error="skId"></small></label>
+            <label><span>Full Name *</span><input name="fullName" autocomplete="name" maxlength="60" required placeholder="Candidate full name" /><small data-wizard-error="fullName"></small></label>
+            <label><span>Batch *</span><select name="batch" required><option value="">Select batch</option><option>1</option><option>2</option><option>3</option><option>4</option></select><small data-wizard-error="batch"></small></label>
+          </div>
+          <div class="wizard-verification">
+            <div><strong>Email verification</strong><small data-otp-help>A 6-digit code is required before saving.</small></div>
+            <button type="button" data-send-otp>Send code</button>
+            <div class="wizard-otp" data-otp-panel hidden><label><span>Code *</span><input name="verificationCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" /></label><button type="button" data-verify-otp>Verify</button></div>
+          </div>
+        </section>
+
+        <section class="wizard-step" data-wizard-step="2" hidden>
+          <p class="wizard-kicker">Interview details <span>Step 2 of 4</span></p><h2><i>2</i> Interview details</h2>
+          <div class="wizard-fields">
+            <label><span>Round *</span><select name="round" required><option value="">Select round</option><option>Assessment</option><option>AI Assessment</option><option>Round 1</option><option>Round 2</option><option>Round 3</option><option>Round 4</option><option>Reschedule Round 1</option><option>Reschedule Round 2</option><option>Reschedule Round 3</option><option>Reschedule Round 4</option><option>HR Manager Round</option><option>AI Interview</option><option>Interview Supporter not available</option></select><small data-wizard-error="round"></small></label>
+            <label><span>Technologies Required *</span><select name="technology" required data-wizard-technology><option value="">Select technology</option><option>QA Engineer</option><option>Data Engineer</option><option>Full Stack Dot Net Developer</option><option>Java</option><option>Python</option><option>Interview Supporter not available</option><option>SAP</option><option>Other</option></select><small data-wizard-error="technology"></small></label>
+            <label data-wizard-other hidden><span>Other Technology *</span><input name="technologyOther" maxlength="80" placeholder="Enter technology" /><small data-wizard-error="technologyOther"></small></label>
+            <label><span>Interview Company *</span><input name="company" maxlength="100" required placeholder="Company name" /><small data-wizard-error="company"></small></label>
+          </div>
+        </section>
+
+        <section class="wizard-step" data-wizard-step="3" hidden>
+          <p class="wizard-kicker">HR contact <span>Step 3 of 4</span></p><h2><i>3</i> HR contact</h2>
+          <div class="wizard-fields">
+            <label><span>HR Name *</span><input name="hrName" maxlength="60" required placeholder="HR full name" /><small data-wizard-error="hrName"></small></label>
+            <label><span>HR Number *</span><input type="tel" name="hrPhone" inputmode="tel" maxlength="18" required placeholder="+919XXXXXXXXX" /><small data-wizard-error="hrPhone"></small></label>
+            <label class="wizard-field--full"><span>HR Mail ID *</span><input type="email" name="hrEmail" maxlength="120" required placeholder="hr@company.com" /><small data-wizard-error="hrEmail"></small></label>
+          </div>
+        </section>
+
+        <section class="wizard-step" data-wizard-step="4" hidden>
+          <p class="wizard-kicker">Date and time <span>Step 4 of 4</span></p><h2><i>4</i> Date and time</h2>
+          <div class="wizard-fields wizard-fields--schedule">
+            <label><span>Interview Date *</span><input type="date" name="date" required data-wizard-date /><small data-wizard-error="date"></small></label>
+            <label><span>Duration *</span><select name="duration" data-wizard-duration><option value="30">30 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option></select></label>
+            <label class="wizard-field--full"><span>Available panel and time *</span><select name="slot" required data-wizard-slots><option value="">Select a date first</option></select><small data-wizard-error="slot"></small></label>
+          </div>
+          <p class="wizard-slot-note" data-wizard-slot-note>Times use Asia/Kolkata. Blocked panels and weekends are removed automatically.</p>
+        </section>
+
+        <footer class="wizard-actions">
+          <button class="wizard-button wizard-button--quiet" type="button" data-cancel-booking>Cancel</button>
+          <span></span>
+          <button class="wizard-button wizard-button--quiet" type="button" data-wizard-back hidden>← Back</button>
+          <button class="wizard-button wizard-button--primary" type="button" data-wizard-next>Continue →</button>
+          <button class="wizard-button wizard-button--primary" type="submit" data-wizard-save hidden>Save Interview</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <div class="dashboard-toast" data-dashboard-toast role="status" aria-live="polite" hidden></div>
+    <noscript><div class="dashboard-noscript">JavaScript is required for the live dashboard. Contact support@mysktech.com if you need help.</div></noscript>
+    <script type="module" src="/src/dashboard.ts"></script>
+  </body>
+</html>

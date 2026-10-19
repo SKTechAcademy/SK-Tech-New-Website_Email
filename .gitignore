@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+.vite/
+.tmp/
+.env
+.env.*
+!.env.example
+*.log
+*.local
+.DS_Store
+Thumbs.db
+artifacts/
+outputs/
+apps-script/.clasp.json
+apps-script/.clasprc.json

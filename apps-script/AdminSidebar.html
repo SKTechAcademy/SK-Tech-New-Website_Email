@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <style>
+      :root { color-scheme: light; font-family: Arial, sans-serif; color: #162033; }
+      body { margin: 0; padding: 16px; background: #f6f8fb; }
+      h2 { margin: 0 0 4px; font-size: 18px; }
+      .hint { margin: 0 0 14px; color: #657085; font-size: 12px; line-height: 1.45; }
+      label { display: block; margin: 10px 0 4px; font-size: 12px; font-weight: 700; }
+      input, select, textarea, button { box-sizing: border-box; width: 100%; font: inherit; }
+      input, select, textarea { border: 1px solid #cbd2dd; border-radius: 7px; padding: 9px; background: #fff; }
+      textarea { min-height: 64px; resize: vertical; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      button { margin-top: 12px; border: 0; border-radius: 7px; padding: 10px; background: #f36f21; color: #fff; font-weight: 700; cursor: pointer; }
+      button.secondary { width: auto; margin: 0; padding: 5px 8px; color: #162033; background: #e7ebf2; font-size: 11px; }
+      button:disabled { opacity: .55; cursor: wait; }
+      .card { margin-top: 14px; border: 1px solid #dde2ea; border-radius: 9px; padding: 10px; background: #fff; }
+      .rule { padding: 9px 0; border-bottom: 1px solid #edf0f5; font-size: 12px; line-height: 1.4; }
+      .rule:last-child { border: 0; }
+      .rule-head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+      .muted { color: #657085; }
+      .status { min-height: 18px; margin-top: 10px; font-size: 12px; }
+      .error { color: #b42318; }
+      .success { color: #067647; }
+      .hidden { display: none; }
+    </style>
+  </head>
+  <body>
+    <h2>Availability controls</h2>
+    <p class="hint">Block one panel, all panels, a time window or a full day. Use Special open to allow a weekend date.</p>
+
+    <label for="kind">Rule type</label>
+    <select id="kind">
+      <option value="BLOCK">Block unavailable time</option>
+      <option value="SPECIAL_OPEN">Special weekend opening</option>
+    </select>
+
+    <div id="scopeWrap">
+      <label for="scope">Apply to</label>
+      <select id="scope">
+        <option value="ALL">All panels</option>
+        <option value="PANEL">One panel</option>
+      </select>
+    </div>
+
+    <div id="panelWrap" class="hidden">
+      <label for="panelId">Panel</label>
+      <select id="panelId"></select>
+    </div>
+
+    <div class="row">
+      <div><label for="dateFrom">From date</label><input id="dateFrom" type="date" required></div>
+      <div><label for="dateTo">To date</label><input id="dateTo" type="date" required></div>
+    </div>
+    <div class="row">
+      <div><label for="startTime">Start (blank = all day)</label><input id="startTime" type="time"></div>
+      <div><label for="endTime">End</label><input id="endTime" type="time"></div>
+    </div>
+    <label for="reason">Reason</label>
+    <textarea id="reason" maxlength="300" placeholder="Panel unavailable, holiday, special Saturday session…"></textarea>
+    <button id="save" type="button">Save availability rule</button>
+    <div id="status" class="status" role="status"></div>
+
+    <div class="card">
+      <strong>Recent rules</strong>
+      <div id="rules" class="muted">Loading…</div>
+    </div>
+
+    <script>
+      const byId = (id) => document.getElementById(id);
+      let state = { panels: [], blocks: [], specialOpens: [] };
+
+      function callServer(name, argument) {
+        return new Promise((resolve, reject) => {
+          const runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+          if (typeof argument === 'undefined') runner[name](); else runner[name](argument);
+        });
+      }
+
+      function updateControls() {
+        const special = byId('kind').value === 'SPECIAL_OPEN';
+        byId('scopeWrap').classList.toggle('hidden', special);
+        const needsPanel = special || byId('scope').value === 'PANEL';
+        byId('panelWrap').classList.toggle('hidden', !needsPanel);
+        if (special) {
+          const empty = byId('panelId').querySelector('option[value=""]');
+          if (empty) empty.hidden = false;
+        }
+      }
+
+      function renderRules() {
+        const root = byId('rules');
+        root.textContent = '';
+        const all = state.blocks.map((rule) => ({ ...rule, kind: 'BLOCK' }))
+          .concat(state.specialOpens.map((rule) => ({ ...rule, kind: 'SPECIAL_OPEN' })));
+        if (!all.length) { root.textContent = 'No rules yet.'; return; }
+        all.slice(0, 40).forEach((rule) => {
+          const item = document.createElement('div');
+          item.className = 'rule';
+          const head = document.createElement('div');
+          head.className = 'rule-head';
+          const text = document.createElement('span');
+          const type = rule.kind === 'SPECIAL_OPEN' ? 'Special open' : 'Blocked';
+          const panel = rule.panelId || 'All panels';
+          const time = rule.startTime ? `${rule.startTime}–${rule.endTime}` : 'All day';
+          text.textContent = `${type}: ${panel} · ${rule.dateFrom}${rule.dateTo !== rule.dateFrom ? ` to ${rule.dateTo}` : ''} · ${time}`;
+          const toggle = document.createElement('button');
+          toggle.className = 'secondary';
+          toggle.textContent = rule.active ? 'Disable' : 'Enable';
+          toggle.addEventListener('click', async () => {
+            toggle.disabled = true;
+            try {
+              await callServer('adminSetRuleActive', { kind: rule.kind, id: rule.id, active: !rule.active });
+              await load();
+            } catch (error) { showStatus(error.message || 'Could not update the rule.', true); }
+          });
+          head.append(text, toggle);
+          const reason = document.createElement('div');
+          reason.className = 'muted';
+          reason.textContent = `${rule.reason} · ${rule.active ? 'Active' : 'Inactive'}`;
+          item.append(head, reason);
+          root.append(item);
+        });
+      }
+
+      function showStatus(message, error) {
+        byId('status').textContent = message;
+        byId('status').className = `status ${error ? 'error' : 'success'}`;
+      }
+
+      async function load() {
+        state = await callServer('adminGetBootstrap');
+        const select = byId('panelId');
+        select.textContent = '';
+        const all = document.createElement('option');
+        all.value = '';
+        all.textContent = 'All panels';
+        select.append(all);
+        state.panels.forEach((panel) => {
+          const option = document.createElement('option');
+          option.value = panel.panelId;
+          option.textContent = panel.label;
+          select.append(option);
+        });
+        renderRules();
+        updateControls();
+      }
+
+      byId('kind').addEventListener('change', updateControls);
+      byId('scope').addEventListener('change', updateControls);
+      byId('dateFrom').addEventListener('change', () => {
+        if (!byId('dateTo').value) byId('dateTo').value = byId('dateFrom').value;
+      });
+      byId('save').addEventListener('click', async () => {
+        const button = byId('save');
+        button.disabled = true;
+        showStatus('Saving…', false);
+        const payload = {
+          scope: byId('scope').value,
+          panelId: byId('panelId').value,
+          dateFrom: byId('dateFrom').value,
+          dateTo: byId('dateTo').value || byId('dateFrom').value,
+          startTime: byId('startTime').value,
+          endTime: byId('endTime').value,
+          reason: byId('reason').value
+        };
+        try {
+          if (byId('kind').value === 'SPECIAL_OPEN') await callServer('adminAddSpecialOpen', payload);
+          else await callServer('adminAddSlotBlock', payload);
+          byId('reason').value = '';
+          showStatus('Saved. Public availability now uses this rule.', false);
+          await load();
+        } catch (error) {
+          showStatus(error.message || 'Could not save the rule.', true);
+        } finally { button.disabled = false; }
+      });
+
+      load().catch((error) => showStatus(error.message || 'Could not load availability controls.', true));
+    </script>
+  </body>
+</html>

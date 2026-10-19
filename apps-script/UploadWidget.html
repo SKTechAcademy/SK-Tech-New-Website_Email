@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+      :root{font:15px/1.45 Arial,sans-serif;color:#18233a;background:#fff}
+      *{box-sizing:border-box}body{margin:0;padding:2px}form{display:grid;gap:12px}
+      form.is-uploading .grid{pointer-events:none;opacity:.68}
+      .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      label{display:grid;gap:6px;font-weight:700}.full{grid-column:1/-1}
+      input[type=file]{width:100%;padding:11px;border:1px solid #cbd3e0;border-radius:10px;background:#f8faff;font:inherit;font-weight:400}
+      small{color:#63708a;font-weight:400}.offers{display:grid;gap:8px;padding:12px;border:1px solid #dbe2ee;border-radius:12px;background:#f8faff}
+      .status{min-height:22px;color:#53617a}.status.error{color:#a82424}.status.success{color:#126b3c}
+      @media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+    </style>
+  </head>
+  <body>
+    <form id="documents" enctype="multipart/form-data">
+      <input type="hidden" name="email">
+      <input type="hidden" name="verificationToken">
+      <input type="hidden" name="requestId">
+      <input type="hidden" name="replyOrigin">
+      <input type="hidden" name="nonce">
+      <div class="grid">
+        <label class="full">Upload Resume
+          <input type="file" name="resume" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+        </label>
+        <label>Aadhar card
+          <input type="file" name="aadhar" accept=".pdf,.jpg,.jpeg,.png">
+        </label>
+        <label>Relieving Letter
+          <input type="file" name="relievingLetter" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+        </label>
+        <label>Experience Letter
+          <input type="file" name="experienceLetter" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+        </label>
+        <div class="offers">
+          <b>Current Company Offer Letter</b>
+          <small>Up to five files.</small>
+          <input type="file" name="offerLetter1" aria-label="Offer letter 1" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+          <input type="file" name="offerLetter2" aria-label="Offer letter 2" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+          <input type="file" name="offerLetter3" aria-label="Offer letter 3" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+          <input type="file" name="offerLetter4" aria-label="Offer letter 4" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+          <input type="file" name="offerLetter5" aria-label="Offer letter 5" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+        </div>
+      </div>
+      <div id="status" class="status" role="status" aria-live="polite">No documents selected.</div>
+    </form>
+    <script>
+      (function(){
+        'use strict';
+        var parentOrigin=<?!= parentOriginJson ?>;
+        var nonce=<?!= nonceJson ?>;
+        var maxFileBytes=<?= maxFileBytes ?>;
+        var maxTotalBytes=<?= maxTotalBytes ?>;
+        var form=document.getElementById('documents');
+        var status=document.getElementById('status');
+        var uploading=false;
+
+        function setUploading(value){
+          uploading=value;
+          form.classList.toggle('is-uploading',value);
+          if(value)form.setAttribute('aria-busy','true');else form.removeAttribute('aria-busy');
+        }
+
+        form.replyOrigin.value=parentOrigin;
+        form.nonce.value=nonce;
+        function send(event,payload){
+          window.parent.postMessage(Object.assign({source:'sk-tech-upload',event:event,nonce:nonce},payload||{}),parentOrigin);
+        }
+        function files(){
+          return Array.prototype.slice.call(form.querySelectorAll('input[type=file]')).map(function(input){return input.files&&input.files[0];}).filter(Boolean);
+        }
+        function validate(){
+          var selected=files();
+          var error='';
+          var total=0;
+          selected.forEach(function(file){
+            total+=file.size;
+            if(file.size>maxFileBytes)error='Each document must be 10 MB or smaller.';
+            if(!/\.(pdf|doc|docx|jpe?g|png)$/i.test(file.name))error='Documents must be PDF, DOC, DOCX, JPG or PNG files.';
+          });
+          if(total>maxTotalBytes)error='The selected documents must total 30 MB or less.';
+          status.textContent=error||(selected.length?selected.length+' document'+(selected.length===1?'':'s')+' selected.':'No documents selected.');
+          status.className='status'+(error?' error':'');
+          send('state',{selectedCount:selected.length,valid:!error,message:status.textContent});
+          return !error;
+        }
+        form.addEventListener('change',validate);
+        window.addEventListener('message',function(event){
+          if(event.source!==window.parent||event.origin!==parentOrigin)return;
+          var data=event.data||{};
+          if(data.source!=='sk-tech-upload-parent'||data.nonce!==nonce)return;
+          if(data.command==='reset'){
+            form.reset();form.replyOrigin.value=parentOrigin;form.nonce.value=nonce;setUploading(false);validate();return;
+          }
+          if(data.command!=='upload'||uploading||!validate())return;
+          if(!files().length){send('complete',{uploadToken:'',fileCount:0});return;}
+          form.email.value=String(data.email||'');
+          form.verificationToken.value=String(data.verificationToken||'');
+          form.requestId.value=String(data.requestId||'');
+          setUploading(true);status.textContent='Uploading documents securely…';status.className='status';
+          google.script.run
+            .withSuccessHandler(function(result){
+              setUploading(false);status.textContent='Documents uploaded securely.';status.className='status success';
+              send('complete',result||{});
+            })
+            .withFailureHandler(function(error){
+              setUploading(false);
+              var message=error&&error.message?error.message:'Documents could not be uploaded. Please try again.';
+              status.textContent=message;status.className='status error';send('error',{message:message});
+            })
+            .uploadCandidateFiles(form);
+        });
+        send('ready',{});validate();
+      })();
+    </script>
+  </body>
+</html>
