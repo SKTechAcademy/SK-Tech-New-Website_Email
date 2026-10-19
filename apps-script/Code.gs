@@ -150,7 +150,7 @@ function getPublicConfig_() {
     bookingHorizonDays: Number(setting_('BOOKING_WINDOW_DAYS')) || 14,
     bookingLeadMinutes: Number(setting_('BOOKING_LEAD_MINUTES')) || 120,
     weekendsClosed: true,
-    emailVerificationRequired: true,
+    emailVerificationRequired: emailVerificationRequired_(),
     candidateLoginRequired: false,
     ga4MeasurementId: setting_('GA4_MEASUREMENT_ID'),
     turnstileEnabled: settingBoolean_('TURNSTILE_ENABLED'),

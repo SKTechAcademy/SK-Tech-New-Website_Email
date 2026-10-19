@@ -17,7 +17,10 @@ function assertHumanRequest_(payload) {
   if (!result.success) throw appError_('BOT_CHECK_FAILED', 'The security check expired. Please try again.');
 }
 
+function emailVerificationRequired_() { return false; }
+
 function requestEmailVerification_(payload) {
+  if (!emailVerificationRequired_()) throw appError_('OTP_DISABLED', 'No verification code is required. Submit the form directly.');
   assertHumanRequest_(payload);
   var email = Core.normalizeEmail(payload.email);
   var emailError = Core.validateEmail(email);
@@ -123,6 +126,12 @@ function verifyEmail_(payload) {
 }
 
 function consumeEmailVerificationUnlocked_(token, email, purpose) {
+  if (!emailVerificationRequired_()) {
+    assertStagingRecipientAllowed_(email);
+    checkRateLimit_('form-' + purpose, Core.normalizeEmail(email), purpose === 'REGISTRATION' ? 3 : 10, 3600);
+    checkRateLimit_('public-form-global', 'all', 50, 3600);
+    return { verificationId: '' };
+  }
   var raw = String(token || '');
   if (!/^VT-[A-Za-z0-9]{50,80}$/.test(raw)) {
     throw appError_('EMAIL_VERIFICATION_REQUIRED', 'Verify your email address before continuing.');

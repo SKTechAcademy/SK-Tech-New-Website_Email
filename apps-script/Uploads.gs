@@ -34,6 +34,7 @@ function uploadCandidateFiles(formObject) {
   assertRegistrationVerificationToken_(String(form.verificationToken || ''), email);
   var requestId = assertRequestId_(form.requestId);
   checkRateLimit_('candidate-upload', email, 5, 3600);
+  checkRateLimit_('candidate-upload-global', 'all', 20, 3600);
 
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) throw appError_('BUSY', 'The upload service is busy. Please try again.');
@@ -109,6 +110,7 @@ function uploadCandidateFiles(formObject) {
 }
 
 function assertRegistrationVerificationToken_(token, email) {
+  if (!emailVerificationRequired_()) return;
   if (!/^VT-[A-Za-z0-9]{50,80}$/.test(token)) {
     throw appError_('EMAIL_VERIFICATION_REQUIRED', 'Verify your email before uploading documents.');
   }

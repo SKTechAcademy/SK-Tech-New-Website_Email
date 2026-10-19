@@ -220,10 +220,10 @@
           <aside class="form-intro" data-reveal>
             <p class="eyebrow eyebrow--dark">Candidate registration</p>
             <h2>One form.<br /><span>Your unique SK ID.</span></h2>
-            <p>Register without a login. We verify your email, safely create your candidate record and send your SK ID to your inbox.</p>
+            <p>Register without a login or OTP. We safely create your candidate record and send your SK ID to your inbox.</p>
             <ol class="mini-steps">
               <li><span>1</span><div><b>Enter genuine details</b><small>Required fields are checked in the browser and again on the server.</small></div></li>
-              <li><span>2</span><div><b>Verify your email</b><small>A short verification code confirms the address belongs to you.</small></div></li>
+              <li><span>2</span><div><b>Check your email address</b><small>No OTP needed. We send your registration confirmation and SK ID to this address.</small></div></li>
               <li><span>3</span><div><b>Receive your SK ID</b><small>Your registration confirmation is delivered by email.</small></div></li>
             </ol>
             <div class="privacy-note"><span aria-hidden="true">◈</span><p><b>Your details stay out of analytics.</b><br />We never send names, emails, phone numbers or SK IDs to Google Analytics.</p></div>
@@ -237,8 +237,8 @@
                 <legend>Contact details</legend>
                 <div class="field-grid">
                   <label class="field field--full"><span>Name *</span><input name="fullName" autocomplete="name" maxlength="60" required placeholder="As shown on your professional profile" /><small class="field-error" data-error-for="fullName"></small></label>
-                  <label class="field"><span>Email (for verification) *</span><input type="email" name="email" autocomplete="email" maxlength="120" required placeholder="you@example.com" /><small class="field-hint">We send the verification code and SK ID here.</small><small class="field-error" data-error-for="email"></small></label>
-                  <label class="field"><span>Email ID *</span><input type="email" name="emailId" autocomplete="email" maxlength="120" required placeholder="Candidate contact email" /><small class="field-hint">This can be the same as your verified email.</small><small class="field-error" data-error-for="emailId"></small></label>
+                  <label class="field"><span>Email (for confirmation) *</span><input type="email" name="email" autocomplete="email" maxlength="120" required placeholder="you@example.com" /><small class="field-hint">We send your confirmation and SK ID here. No OTP required.</small><small class="field-error" data-error-for="email"></small></label>
+                  <label class="field"><span>Email ID *</span><input type="email" name="emailId" autocomplete="email" maxlength="120" required placeholder="Candidate contact email" /><small class="field-hint">This can be the same as your confirmation email.</small><small class="field-error" data-error-for="emailId"></small></label>
                   <label class="field"><span>Mobile number *</span><input type="tel" name="mobileNumber" autocomplete="tel" inputmode="numeric" maxlength="16" required placeholder="10-digit mobile number" /><small class="field-error" data-error-for="mobileNumber"></small></label>
                   <label class="field"><span>WhatsApp number *</span><input type="tel" name="whatsappNumber" autocomplete="tel" inputmode="numeric" maxlength="16" required placeholder="10-digit WhatsApp number" /><small class="field-error" data-error-for="whatsappNumber"></small></label>
                   <label class="field field--full"><span>Gender *</span><select name="gender" required><option value="">Select gender</option><option>Male</option><option>Female</option></select><small class="field-error" data-error-for="gender"></small></label>
@@ -273,7 +273,7 @@
                 <div class="upload-status" role="status" aria-live="polite" data-upload-status>No documents selected.</div>
               </fieldset>
 
-              <div class="verification-box" data-email-verification="registration">
+              <div class="verification-box" data-email-verification="registration" hidden>
                 <div><span class="verification-icon" aria-hidden="true">@</span><div><b>Verify your email</b><small data-verification-help>We will send a 6-digit code to the address above.</small></div></div>
                 <button class="button button--small button--ghost-dark" type="button" data-send-code>Send code</button>
                 <div class="verification-code" data-code-panel hidden>
@@ -336,7 +336,7 @@
                     <label class="field field--full"><span>HR mail ID *</span><input type="email" name="hrEmail" maxlength="120" required placeholder="hr@company.com" /><small class="field-error" data-error-for="hrEmail"></small></label>
                   </div>
 
-                  <div class="verification-box" data-email-verification="booking">
+                  <div class="verification-box" data-email-verification="booking" hidden>
                     <div><span class="verification-icon" aria-hidden="true">@</span><div><b>Confirm registered email</b><small data-verification-help>We will send a 6-digit booking verification code.</small></div></div>
                     <button class="button button--small button--ghost-dark" type="button" data-send-code>Send code</button>
                     <div class="verification-code" data-code-panel hidden>
@@ -409,7 +409,7 @@
         <div class="shell faq-grid">
           <div data-reveal><p class="eyebrow eyebrow--dark">Quick answers</p><h2>Common questions,<br /><span>clearly answered.</span></h2><p>Need something else? Our support team is one message away.</p></div>
           <div class="accordion" data-reveal>
-            <details><summary>Do I need an account to register or book?<span aria-hidden="true">+</span></summary><p>No. Candidate registration, availability and interview booking work without a login. Email verification keeps the workflow secure.</p></details>
+            <details><summary>Do I need an account to register or book?<span aria-hidden="true">+</span></summary><p>No login or OTP is required. Enter your email correctly to receive your SK ID, confirmations and private rescheduling link.</p></details>
             <details><summary>Can I have two interviews on the same day?<span aria-hidden="true">+</span></summary><p>Yes. A candidate may book multiple interviews on the same day—even with matching details—when panel capacity is available.</p></details>
             <details><summary>What happens when an admin blocks a slot?<span aria-hidden="true">+</span></summary><p>The blocked panel or time disappears from live availability. The server checks again before saving so stale pages cannot take a blocked slot.</p></details>
             <details><summary>Are weekends available?<span aria-hidden="true">+</span></summary><p>Saturday and Sunday are closed by default. A special-open exception may be published by the admin for a specific weekend date.</p></details>
@@ -422,7 +422,7 @@
           <div><p class="eyebrow">Clear by design</p><h2 id="privacy-title">Privacy and acceptable use</h2><p>We collect only the details needed to register candidates, coordinate interviews and provide career support.</p></div>
           <article><b>How records are used</b><p>Candidate and booking details are stored in the organization’s private Google Workspace and used by authorized SK Tech staff for service delivery.</p></article>
           <article><b>Analytics boundaries</b><p>Google Analytics loads only after consent. Personal details, SK IDs, booking references and form answers are never included in analytics events.</p></article>
-          <article><b>Your responsibility</b><p>Submit genuine, accurate information and keep email verification codes and booking manage tokens private. Contact support to request a correction.</p></article>
+          <article><b>Your responsibility</b><p>Submit genuine, accurate information, check your email address and keep booking manage tokens private. Contact support to request a correction.</p></article>
         </div>
       </section>
     </main>

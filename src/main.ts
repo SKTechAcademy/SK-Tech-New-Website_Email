@@ -816,7 +816,6 @@ const initRegistration = (): void => {
     clearFieldErrors(form);
     const data = new FormData(form);
     const errors = registrationErrors(data);
-    if (!verification.token) errors.email ||= "Verify this email address before registering.";
     if (Object.keys(errors).length) {
       applyFieldErrors(form, errors);
       setStatus(status, "Please correct the highlighted fields.", "error");
@@ -966,7 +965,6 @@ const initBooking = (): void => {
     clearFieldErrors(form);
     const data = new FormData(form);
     const errors = bookingErrors(data);
-    if (!verification.token) errors.email ||= "Verify the registered email before booking.";
     const slot = availability.selection;
     if (!slot) {
       setStatus(qs<HTMLElement>("[data-availability-status]", availabilityRoot), "Choose an available panel and time.", "error");

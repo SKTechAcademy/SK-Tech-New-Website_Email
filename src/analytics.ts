@@ -47,7 +47,9 @@ const loadGoogleAnalytics = (): void => {
   if (loaded || !gaId || consent !== "granted") return;
   loaded = true;
   window.dataLayer = window.dataLayer || [];
-  window.gtag = (...args: unknown[]) => window.dataLayer.push(args);
+  // Google tag commands require an Arguments object, not a plain array.
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  (window as unknown as Record<string, unknown>)[`ga-disable-${gaId}`] = false;
   window.gtag("js", new Date());
   window.gtag("config", gaId, {
     anonymize_ip: true,
@@ -56,6 +58,8 @@ const loadGoogleAnalytics = (): void => {
     cookie_flags: "SameSite=Lax;Secure",
     page_location: `${window.location.origin}${window.location.pathname}`,
     page_path: window.location.pathname,
+    page_referrer: "",
+    ...(import.meta.env.DEV ? { debug_mode: true } : {}),
     send_page_view: true,
   });
   const script = document.createElement("script");
@@ -67,6 +71,7 @@ const loadGoogleAnalytics = (): void => {
 const setConsent = (value: ConsentValue): void => {
   consent = value;
   safeStorageSet(value);
+  if (gaId) (window as unknown as Record<string, unknown>)[`ga-disable-${gaId}`] = value !== "granted";
   if (value === "granted") loadGoogleAnalytics();
 };
 
@@ -105,6 +110,7 @@ export const configureAnalytics = (measurementId: string): void => {
   const clean = String(measurementId || "").trim().toUpperCase();
   if (!/^G-[A-Z0-9]{4,20}$/.test(clean)) return;
   gaId = clean;
+  (window as unknown as Record<string, unknown>)[`ga-disable-${gaId}`] = consent !== "granted";
   const banner = document.querySelector<HTMLElement>("[data-consent-banner]");
   if (consent === null && banner) banner.hidden = false;
   if (consent === "granted") loadGoogleAnalytics();
