@@ -601,9 +601,6 @@ class BookingWizard {
       errors.skId = validateSkId(valueOf(data, "skId"), ALLOW_TEST_IDS);
       errors.fullName = validateName(valueOf(data, "fullName"));
       errors.batch = validateRequiredSelect(valueOf(data, "batch"), "Batch");
-      if (!this.verificationToken || Date.now() >= this.verificationExpiresAt || this.verifiedEmail !== valueOf(data, "email").toLowerCase()) {
-        errors.email ||= "Verify this email before continuing.";
-      }
     }
     if (step === 2) {
       errors.round = validateRequiredSelect(valueOf(data, "round"), "Round");
@@ -762,11 +759,6 @@ class BookingWizard {
   private async submit(): Promise<void> {
     if (!this.validateStep(4)) return;
     const data = new FormData(this.form);
-    if (!this.verificationToken || Date.now() >= this.verificationExpiresAt) {
-      this.goTo(1);
-      this.setError("email", "Verify this email again before saving.");
-      return;
-    }
     const slot = this.availableSlots[Number(valueOf(data, "slot"))];
     if (!slot) return;
     const technology = valueOf(data, "technology") === "Other"
@@ -792,7 +784,7 @@ class BookingWizard {
     this.setBusy(true);
     this.setStatus("Rechecking the panel and saving your interview…");
     try {
-      await bookInterview(this.requestId, this.verificationToken, booking, valueOf(data, "website"));
+      await bookInterview(this.requestId, "", booking, valueOf(data, "website"));
       this.requestId = "";
       this.dialog.close();
       this.reset();
