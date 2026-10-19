@@ -21,11 +21,24 @@ function promptInitializeStagingWorkbook() {
   ui.alert('Staging workbook initialized. Existing production data was not accessed.');
 }
 
+// Editor-safe entry point for this project's isolated staging workbook.
+// Uses the configured ID, never a UI prompt or the currently selected sheet.
+function setupStagingBackend() {
+  var expectedId = '1wuXvUl6fGlV0Y4KnC5LW5edkh5-ECgJUbwkNnzUxa4Q';
+  var properties = PropertiesService.getScriptProperties();
+  if (properties.getProperty('SPREADSHEET_ID') !== expectedId) {
+    throw appError_('WORKBOOK_MISMATCH', 'Configure the new staging spreadsheet ID before setup.');
+  }
+  var report = initializeStagingWorkbook('CREATE NEW STAGING');
+  console.log(JSON.stringify(report));
+  return report;
+}
+
 function initializeStagingWorkbook(confirmation) {
   if (confirmation !== 'CREATE NEW STAGING') {
     throw appError_('CONFIRMATION_REQUIRED', 'The exact staging confirmation phrase is required.');
   }
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.getActiveSpreadsheet() || getSpreadsheet_();
   if (!ss) throw appError_('NO_ACTIVE_WORKBOOK', 'Open the new staging workbook first.');
   var props = PropertiesService.getScriptProperties();
   var configured = props.getProperty('SPREADSHEET_ID');
