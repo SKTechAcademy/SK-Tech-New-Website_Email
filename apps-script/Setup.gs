@@ -51,7 +51,8 @@ function initializeStagingWorkbook(confirmation) {
     if (sheet.getLastRow() === 1 && sheet.getLastColumn() === 1 && !sheet.getRange(1, 1).getDisplayValue()) return false;
     return true;
   });
-  if (populated && !props.getProperty('SCHEMA_VERSION') && !isRecognizedStagingSkeleton_(ss)) {
+  var recognizedSkeleton = populated && isRecognizedStagingSkeleton_(ss);
+  if (populated && !props.getProperty('SCHEMA_VERSION') && !recognizedSkeleton) {
     throw appError_('WORKBOOK_NOT_BLANK', 'Initialization is restricted to a new blank staging workbook.');
   }
 
@@ -86,7 +87,10 @@ function initializeStagingWorkbook(confirmation) {
   seedSequences_();
   seedPanels_();
   seedReferenceData_();
-  applyStagingValidations_();
+  // Imported staging sheets already carry native typed-table dropdown rules.
+  // Apps Script setDataValidation cannot overwrite those typed columns.
+  // Preserve their verified existing rules; seed rules only on a new blank sheet.
+  if (!populated) applyStagingValidations_();
   props.setProperty('SCHEMA_VERSION', '1');
   clearSettingsCache_();
   SpreadsheetApp.flush();
