@@ -124,11 +124,7 @@
             <label><span>Full Name *</span><input name="fullName" autocomplete="name" maxlength="60" required placeholder="Candidate full name" /><small data-wizard-error="fullName"></small></label>
             <label><span>Batch *</span><select name="batch" required><option value="">Select batch</option><option>1</option><option>2</option><option>3</option><option>4</option></select><small data-wizard-error="batch"></small></label>
           </div>
-          <div class="wizard-verification">
-            <div><strong>Email verification</strong><small data-otp-help>A 6-digit code is required before saving.</small></div>
-            <button type="button" data-send-otp>Send code</button>
-            <div class="wizard-otp" data-otp-panel hidden><label><span>Code *</span><input name="verificationCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" /></label><button type="button" data-verify-otp>Verify</button></div>
-          </div>
+
         </section>
 
         <section class="wizard-step" data-wizard-step="2" hidden>
