@@ -11,7 +11,7 @@ Legend: **PASS** = directly verified; **IMPLEMENTED / LIVE TEST PENDING** = pres
 | Frontend unit tests | **PASS — 8/8** | `npm run test`; realistic/dummy registration and booking validation plus dashboard-contract cases pass |
 | TypeScript + production bundle | **PASS** | `npm run build` completed during the implementation verification cycle |
 | Combined frontend check | **PASS** | `npm run check` previously completed with tests, type check, and Vite build |
-| Apps Script backend tests | **PASS — 29/29** | `npm --prefix apps-script test` rerun on 19 October; zero failures |
+| Apps Script backend tests | **PASS — 31/31** | `npm --prefix apps-script test` rerun on 19 October; includes branded email rendering, capability privacy and HTML escaping |
 | Public dashboard backend tests | **PASS — 4/4 dashboard cases** | Exact safe columns, date/job partitioning, same-day overlap conflicts, panel/weekend/block states, slot privacy and legacy unavailable-state classification |
 | Google Forms/external-form guard | **PASS** | `npm run scan:external-forms` rerun on 19 October; “External form scan passed” |
 | Apps Script syntax | **PASS — 16 `.gs` files plus combined bundle** | All backend files and the exact concatenated deployment artifact parsed successfully |
@@ -130,6 +130,10 @@ Deployment acceptance must still confirm that the real endpoint:
 4. reflects panel/global blocks, weekends, special openings and capacity changes after refresh;
 5. supplies only genuinely bookable choices to the four-step modal; and
 6. completes a verified booking, Sheet write and booking email from the dashboard.
+
+## Email branding and test recipient — 19 October
+
+The owner authorized staging mail to `siva92396@gmail.com` and requested sender `support@mysktech.com`. The new Sheet's exact staging recipient allowlist now includes that Gmail address. The official logo is stored privately in the staging upload folder as `sk-tech-email-logo.png`, and the mail code attaches it inline. The queue verifies the effective sending account is `support@mysktech.com` before attempting delivery. Branded OTP, registration, booking and reschedule templates plus local HTML previews are implemented and tested. This source update still needs uploading to Apps Script, owner authorization/deployment and real delivery verification. No real test message has yet been sent.
 
 ## Final acceptance evidence to capture
 
