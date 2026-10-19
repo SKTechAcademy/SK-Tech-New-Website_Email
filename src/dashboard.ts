@@ -352,7 +352,7 @@ const setActiveTab = (tab: DashboardTab, focus = false): void => {
 };
 
 const loadFallbackSlots = async (): Promise<PublicDashboardSlot[]> => {
-  const dates = forthcomingWeekdays(dateInIndia(), 4);
+  const dates = forthcomingWeekdays(dateInIndia(), 5);
   const results = await Promise.allSettled(dates.map((date) => loadAvailability(date, 30)));
   return results.flatMap((result, index) => result.status === "fulfilled"
     ? result.value.slots.map((slot) => ({ ...slot, date: result.value.date || dates[index] || dateInIndia() }))
@@ -813,6 +813,10 @@ class BookingWizard {
 }
 
 const init = (): void => {
+  if (DEMO_MODE) {
+    const livePill = qs<HTMLElement>(".live-pill");
+    if (livePill) livePill.textContent = "Demo preview";
+  }
   const today = new Date(`${dateInIndia()}T12:00:00Z`);
   setText(qs("[data-today-badge]"), new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", timeZone: "UTC" }).format(today).replace(" ", "\n"));
   initDashboardTabs();

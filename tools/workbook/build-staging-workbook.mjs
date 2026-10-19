@@ -140,7 +140,7 @@ const seedRows = {
     ["TURNSTILE_ENABLED", "FALSE", "boolean", "Reserved for a future verified frontend integration; keep disabled", false],
   ],
   _Sequences: [
-    ["candidate", 1, "TEST-SK", 4],
+    ["candidate", 1, "SK", 0],
     ["booking", 1, "TEST-BK-", 6],
     ["history", 1, "EVT-", 8],
     ["block", 1, "BLK-", 6],
@@ -231,7 +231,7 @@ control.getRange("A3:F3").format = {
 };
 control.getRange("A5:B11").values = [
   ["Environment", "STAGING"],
-  ["Candidate ID prefix", "TEST-SK"],
+  ["Candidate ID prefix", "SK (SK1, SK2, SK3)"],
   ["Booking ID prefix", "TEST-BK-"],
   ["Default closed days", "Saturday and Sunday"],
   ["Time zone", "Asia/Kolkata"],

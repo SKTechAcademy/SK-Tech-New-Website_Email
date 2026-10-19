@@ -60,7 +60,7 @@ function assertCandidatePayload_(candidate) {
 function assertBookingPayload_(booking) {
   var input = booking || {};
   var errors = {};
-  if (!/^[A-Za-z0-9-]{4,30}$/.test(String(input.skId || ''))) errors.skId = 'Enter a valid SK ID.';
+  if (!/^SK[1-9]\d{0,11}$/i.test(String(input.skId || ''))) errors.skId = 'Enter a valid SK ID, for example SK1.';
   collectFieldError_(errors, 'email', Core.validateEmail(input.email));
   collectFieldError_(errors, 'fullName', Core.validateName(input.fullName));
   var batch = String(input.batch || '');

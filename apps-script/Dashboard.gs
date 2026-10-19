@@ -11,7 +11,7 @@ function getInterviewDashboard_(params) {
   var options = normalizeDashboardOptions_(params || {});
   var today = todayLocal_();
   var cacheKey = [
-    'interview-dashboard-v1', today, options.durationMinutes, options.slotDays,
+    'interview-dashboard-v2', today, options.durationMinutes, options.slotDays,
     options.interviewLimit, options.jobLimit
   ].join(':');
   var cache = CacheService.getScriptCache();
@@ -41,7 +41,7 @@ function normalizeDashboardOptions_(params) {
   var configuredWindow = Math.min(31, Math.max(1, Number(setting_('BOOKING_WINDOW_DAYS')) || 14));
   return {
     durationMinutes: duration,
-    slotDays: clampWholeNumber_(params.slotDays, Math.min(15, configuredWindow + 1), 1, configuredWindow + 1),
+    slotDays: clampWholeNumber_(params.slotDays, 5, 1, 5),
     interviewLimit: clampWholeNumber_(params.interviewLimit, 250, 1, 500),
     jobLimit: clampWholeNumber_(params.jobLimit, 50, 1, 100)
   };
@@ -105,9 +105,12 @@ function buildInterviewDashboard_(snapshot, today, options) {
   var availabilityTableRows = [];
   var totalAvailableSlots = 0;
   var totalAvailableCapacity = 0;
-  for (var offset = 0; offset < options.slotDays; offset += 1) {
+  var workingDaysShown = 0;
+  for (var offset = 0; workingDaysShown < options.slotDays; offset += 1) {
     var date = addDaysToIsoDate_(today, offset);
     if (date > maxBookingDate) break;
+    if (weekendDays.indexOf(Core.weekdayCode(date)) !== -1) continue;
+    workingDaysShown += 1;
     var availability = computeDashboardAvailabilityDay_(date, options.durationMinutes, snapshot, {
       today: today,
       nowMinutes: options.nowMinutes,

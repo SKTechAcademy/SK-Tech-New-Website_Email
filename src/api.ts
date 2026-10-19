@@ -423,11 +423,12 @@ const demoGet = async <T>(action: string, params: Record<string, string | number
         { id: "SK32", round: "Round 2", date: plusDays(1), startTime: "11:30", endTime: "12:00", batch: "2", status: "BOOKED" },
         { id: "SK54", round: "Technical Round", date: plusDays(2), startTime: "14:00", endTime: "15:00", batch: "3", status: "BOOKED" },
       ],
-      availableSlots: [
-        { date: plusDays(1), panelId: "DEMO-PANEL-1", panelLabel: "Demo Panel 1", startTime: "09:00", endTime: "09:30", remainingCapacity: 2 },
-        { date: plusDays(1), panelId: "DEMO-PANEL-2", panelLabel: "Demo Panel 2", startTime: "15:00", endTime: "15:30", remainingCapacity: 1 },
-        { date: plusDays(2), panelId: "DEMO-PANEL-1", panelLabel: "Demo Panel 1", startTime: "10:00", endTime: "10:30", remainingCapacity: 2 },
-      ],
+      availableSlots: Array.from({ length: 9 }, (_, offset) => plusDays(offset))
+        .filter(date => ![0, 6].includes(new Date(`${date}T12:00:00Z`).getUTCDay()))
+        .slice(0, 5).flatMap(date => [
+          { date, panelId: "DEMO-PANEL-1", panelLabel: "Demo Panel 1", startTime: "09:00", endTime: "09:30", remainingCapacity: 2 },
+          { date, panelId: "DEMO-PANEL-2", panelLabel: "Demo Panel 2", startTime: "15:00", endTime: "15:30", remainingCapacity: 1 },
+        ]),
     } as T;
   }
   if (action === "jobs") {

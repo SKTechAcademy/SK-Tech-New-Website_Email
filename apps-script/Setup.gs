@@ -108,7 +108,7 @@ function seedSettings_() {
 
 function seedSequences_() {
   var seeds = [
-    ['candidate', 1, 'TEST-SK', 4],
+    ['candidate', 1, 'SK', 0],
     ['booking', 1, 'TEST-BK-', 6],
     ['history', 1, 'EVT-', 8],
     ['block', 1, 'BLK-', 6],
@@ -248,7 +248,7 @@ function getReadinessReport_() {
   if (!props.getProperty('HASH_SECRET')) blockers.push('HASH_SECRET is missing');
   if (!props.getProperty('UPLOADS_FOLDER_ID')) blockers.push('UPLOADS_FOLDER_ID is missing');
   if (settings.ENVIRONMENT !== 'STAGING') blockers.push('ENVIRONMENT must remain STAGING during this phase');
-  if (!candidateSequence || !/^TEST-SK/.test(candidateSequence.prefix)) blockers.push('Candidate sequence prefix is not staging-safe');
+  if (!candidateSequence || candidateSequence.prefix !== 'SK' || Number(candidateSequence.padLength) !== 0) blockers.push('Candidate sequence must use SK1, SK2, SK3 format');
   if (!bookingSequence || !/^TEST-BK/.test(bookingSequence.prefix)) blockers.push('Booking sequence prefix is not staging-safe');
   if (!settings.STAGING_EMAIL_ALLOWLIST && !settings.STAGING_EMAIL_ALLOWED_DOMAINS) blockers.push('Staging email restrictions are empty');
   if (!settingBoolean_('REGISTRATION_EMAIL_ENABLED')) blockers.push('Registration email is disabled');

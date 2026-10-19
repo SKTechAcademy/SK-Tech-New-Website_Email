@@ -6,6 +6,7 @@ It also includes the public, no-login Interview Dashboard requested to match the
 
 ## Project guides
 
+- [Current real-flow status and latest ID format](docs/REAL_FLOW_STATUS.md)
 - [End-to-end architecture and flow diagrams](docs/ARCHITECTURE.md)
 - [Exact live registration and interview field parity](docs/LIVE_FIELD_PARITY.md)
 - [Verification evidence, requirement status, and remaining blockers](docs/VERIFICATION.md)

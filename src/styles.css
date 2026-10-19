@@ -200,6 +200,8 @@ button {
   flex: 0 0 auto;
 }
 
+.brand__logo { width: 54px; height: 54px; object-fit: contain; flex: 0 0 auto; }
+
 .brand__mark {
   position: relative;
   width: 45px;
