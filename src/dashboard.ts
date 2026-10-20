@@ -10,8 +10,6 @@ import {
   loadAvailability,
   loadJobs,
   loadPublicConfig,
-  requestEmailVerification,
-  verifyEmail,
 } from "./api";
 import { configureAnalytics, initAnalyticsConsent, track } from "./analytics";
 import {
@@ -34,7 +32,6 @@ import {
   sanitizedText,
   validateEmail,
   validateName,
-  validateOtp,
   validatePhone,
   validatePlainText,
   validateRequiredSelect,
@@ -477,10 +474,6 @@ class BookingWizard {
   private form: HTMLFormElement;
   private dialog: HTMLDialogElement;
   private step = 1;
-  private verificationId = "";
-  private verificationToken = "";
-  private verifiedEmail = "";
-  private verificationExpiresAt = 0;
   private requestId = "";
   private availableSlots: AvailabilitySlot[] = [];
   private horizonDays = 14;
@@ -495,13 +488,7 @@ class BookingWizard {
     qs<HTMLButtonElement>("[data-wizard-next]", form)?.addEventListener("click", () => {
       if (this.validateStep(this.step)) this.goTo(this.step + 1);
     });
-    qs<HTMLButtonElement>("[data-send-otp]", form)?.addEventListener("click", () => void this.sendCode());
-    qs<HTMLButtonElement>("[data-verify-otp]", form)?.addEventListener("click", () => void this.verifyCode());
     qs<HTMLSelectElement>("[data-wizard-technology]", form)?.addEventListener("change", () => this.toggleOtherTechnology());
-    const email = qs<HTMLInputElement>("[name='email']", form);
-    email?.addEventListener("input", () => {
-      if (this.verifiedEmail && email.value.trim().toLowerCase() !== this.verifiedEmail) this.resetVerification();
-    });
     qs<HTMLInputElement>("[data-wizard-date]", form)?.addEventListener("change", () => void this.loadWizardSlots());
     qs<HTMLSelectElement>("[data-wizard-duration]", form)?.addEventListener("change", () => void this.loadWizardSlots());
     form.addEventListener("submit", (event) => { event.preventDefault(); void this.submit(); });
@@ -542,7 +529,6 @@ class BookingWizard {
     this.step = 1;
     this.availableSlots = [];
     this.requestId = "";
-    this.resetVerification();
     this.toggleOtherTechnology();
     this.clearErrors();
     this.setStatus("");
@@ -635,76 +621,6 @@ class BookingWizard {
     const visible = technology?.value === "Other";
     if (other) other.hidden = !visible;
     if (input) { input.required = visible; if (!visible) input.value = ""; }
-  }
-
-  private resetVerification(): void {
-    this.verificationId = "";
-    this.verificationToken = "";
-    this.verifiedEmail = "";
-    this.verificationExpiresAt = 0;
-    const panel = qs<HTMLElement>("[data-otp-panel]", this.form);
-    const send = qs<HTMLButtonElement>("[data-send-otp]", this.form);
-    if (panel) panel.hidden = true;
-    if (send) { send.hidden = false; send.textContent = "Send code"; }
-    setText(qs("[data-otp-help]", this.form), "A 6-digit code is required before saving.");
-  }
-
-  private async sendCode(): Promise<void> {
-    const email = qs<HTMLInputElement>("[name='email']", this.form)?.value.trim().toLowerCase() || "";
-    const error = validateEmail(email);
-    this.setError("email", error);
-    if (error) return;
-    const button = qs<HTMLButtonElement>("[data-send-otp]", this.form);
-    if (!button) return;
-    button.disabled = true;
-    button.textContent = "Sending…";
-    try {
-      const result = await requestEmailVerification(createRequestId("dashboard-booking-email"), email, "booking", valueOf(new FormData(this.form), "website"));
-      this.verificationId = result.verificationId;
-      this.verificationToken = "";
-      this.verifiedEmail = "";
-      const panel = qs<HTMLElement>("[data-otp-panel]", this.form);
-      if (panel) panel.hidden = false;
-      setText(qs("[data-otp-help]", this.form), DEMO_MODE ? "Demo code: 123456" : "Code sent. Enter it below to continue.");
-      button.textContent = "Resend code";
-      qs<HTMLInputElement>("[name='verificationCode']", this.form)?.focus();
-      track("email_verification_requested", { form: "dashboard_booking" });
-    } catch (requestError) {
-      this.setStatus(readableError(requestError));
-      button.textContent = "Send code";
-    } finally {
-      button.disabled = false;
-    }
-  }
-
-  private async verifyCode(): Promise<void> {
-    const code = qs<HTMLInputElement>("[name='verificationCode']", this.form)?.value.trim() || "";
-    const codeError = validateOtp(code);
-    if (codeError) { this.setStatus(codeError); return; }
-    if (!this.verificationId) { this.setStatus("Send a verification code first."); return; }
-    const email = qs<HTMLInputElement>("[name='email']", this.form)?.value.trim().toLowerCase() || "";
-    const button = qs<HTMLButtonElement>("[data-verify-otp]", this.form);
-    if (!button) return;
-    button.disabled = true;
-    button.textContent = "Checking…";
-    try {
-      const result = await verifyEmail(createRequestId("dashboard-booking-verify"), this.verificationId, email, code);
-      this.verificationToken = result.verificationToken;
-      this.verifiedEmail = email;
-      this.verificationExpiresAt = Date.now() + result.expiresInSeconds * 1000;
-      const panel = qs<HTMLElement>("[data-otp-panel]", this.form);
-      const send = qs<HTMLButtonElement>("[data-send-otp]", this.form);
-      if (panel) panel.hidden = true;
-      if (send) send.hidden = true;
-      setText(qs("[data-otp-help]", this.form), "Email verified. You can continue.");
-      this.setStatus("");
-      track("email_verification_completed", { form: "dashboard_booking" });
-    } catch (requestError) {
-      this.setStatus(readableError(requestError));
-    } finally {
-      button.disabled = false;
-      button.textContent = "Verify";
-    }
   }
 
   private async loadWizardSlots(): Promise<void> {
